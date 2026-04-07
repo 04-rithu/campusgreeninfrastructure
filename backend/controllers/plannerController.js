@@ -9,19 +9,20 @@ const Trimming = require("../models/Trimming");
  */
 exports.addZone = async (req, res) => {
   try {
-    const { zoneName, areaType, greenCover, waterSource } = req.body;
+    const { zoneName, currentGreenCover, requiredGreenCover, waterSource } = req.body;
 
     const newZone = new Zone({
       zoneName,
-      areaType,
-      greenCover,
+      currentGreenCover,
+      requiredGreenCover,
       waterSource
     });
 
     await newZone.save();
 
     res.status(201).json({
-      message: "Zone added successfully"
+      message: "Zone added successfully",
+      zone: newZone
     });
   } catch (error) {
     res.status(500).json({
@@ -46,6 +47,35 @@ exports.getZones = async (req, res) => {
 };
 
 /**
+ * PUT /api/zones/:id
+ * Update a zone
+ */
+exports.updateZone = async (req, res) => {
+  try {
+    const updatedZone = await Zone.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedZone) return res.status(404).json({ message: "Zone not found" });
+    res.json({ message: "Zone updated successfully", zone: updatedZone });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * DELETE /api/zones/:id
+ * Delete a zone
+ */
+exports.deleteZone = async (req, res) => {
+  try {
+    const zone = await Zone.findByIdAndDelete(req.params.id);
+    if (!zone) return res.status(404).json({ message: "Zone not found" });
+    res.json({ message: "Zone deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+/**
  * GET /api/planner/suggestions
  * FULL PLANNER LOGIC (Zones + Watering + Pesticide + Trimming)
  */
@@ -58,8 +88,8 @@ exports.getPlannerSuggestions = async (req, res) => {
       let suggestions = [];
 
       // 🌱 Green cover rule
-      if (zone.greenCover < 40) {
-        suggestions.push("Increase tree plantation to improve green cover");
+      if (zone.currentGreenCover < zone.requiredGreenCover) {
+        suggestions.push(`Increase tree plantation to reach target of ${zone.requiredGreenCover}%`);
       }
 
       // 💧 Water source rule
@@ -69,19 +99,19 @@ exports.getPlannerSuggestions = async (req, res) => {
 
       // 🧪 Pesticide rule
       const pesticide = await Pesticide
-        .findOne({ zoneId: zone._id })
-        .sort({ appliedDate: -1 });
+        .findOne({ zone: zone.zoneName })
+        .sort({ schedule_date: -1 });
 
-      if (pesticide && pesticide.category === "Chemical") {
+      if (pesticide && pesticide.status === "Chemical") { // Assuming status or type could be checked
         suggestions.push("Reduce chemical pesticide usage");
       }
 
       // ✂️ Trimming rule
       const trimming = await Trimming
-        .findOne({ zoneId: zone._id })
-        .sort({ lastTrimmedDate: -1 });
+        .findOne({ zone: zone.zoneName })
+        .sort({ schedule_date: -1 });
 
-      if (trimming && trimming.riskLevel === "High") {
+      if (trimming && trimming.status === "High") {
         suggestions.push("Immediate trimming required");
       }
 

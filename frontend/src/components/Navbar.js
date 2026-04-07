@@ -27,9 +27,12 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
         <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Campus Green Infrastructure Planner</h1>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray">{user?.email}</span>
-        <FaUserCircle size={24} color="var(--primary-color)" />
+      <div className="flex items-center gap-3">
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>{user?.name}</p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', margin: 0, textTransform: 'capitalize' }}>{user?.role}</p>
+        </div>
+        <FaUserCircle size={32} color="var(--primary-color)" />
       </div>
     </header>
   );

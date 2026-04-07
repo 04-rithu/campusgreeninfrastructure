@@ -1,17 +1,20 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaChartPie, FaTree, FaTint, FaFlask, FaCut, FaSignOutAlt } from 'react-icons/fa';
+import { FaChartPie, FaTree, FaTint, FaFlask, FaCut, FaSignOutAlt, FaTrash, FaCommentAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, portal }) => {
     const { logout } = useAuth();
+    const basePath = portal === 'Admin' ? '/admin' : '/user';
 
     const menuItems = [
-        { path: '/dashboard', name: 'Dashboard', icon: <FaChartPie /> },
-        { path: '/zones', name: 'Zones', icon: <FaTree /> },
-        { path: '/watering', name: 'Watering', icon: <FaTint /> },
-        { path: '/pesticide', name: 'Pesticide', icon: <FaFlask /> },
-        { path: '/trimming', name: 'Trimming', icon: <FaCut /> },
+        { path: `${basePath}/dashboard`, name: 'Dashboard', icon: <FaChartPie /> },
+        { path: `${basePath}/zones`, name: 'Zones', icon: <FaTree /> },
+        { path: `${basePath}/watering`, name: 'Watering', icon: <FaTint /> },
+        { path: `${basePath}/pesticide`, name: 'Pesticide', icon: <FaFlask /> },
+        { path: `${basePath}/trimming`, name: 'Trimming', icon: <FaCut /> },
+        { path: `${basePath}/waste`, name: 'Waste', icon: <FaTrash /> },
+        { path: `${basePath}/suggestions`, name: 'Suggestions', icon: <FaCommentAlt /> },
     ];
 
     return (

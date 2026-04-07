@@ -3,6 +3,7 @@ const router = express.Router();
 
 // IMPORTANT: this matches your actual file name
 const plannerController = require("../controllers/plannerController");
+const { protect, admin } = require("../middleware/authMiddleware");
 
 // Health / status check
 router.get("/status", (req, res) => {
@@ -13,12 +14,15 @@ router.get("/status", (req, res) => {
 });
 
 // Zone APIs
-router.post("/zones", plannerController.addZone);
-router.get("/zones", plannerController.getZones);
+router.post("/zones", protect, admin, plannerController.addZone);
+router.get("/zones", protect, plannerController.getZones);
+router.put("/zones/:id", protect, admin, plannerController.updateZone);
+router.delete("/zones/:id", protect, admin, plannerController.deleteZone);
 
 // Planner suggestion API
 router.get(
   "/planner/suggestions",
+  protect,
   plannerController.getPlannerSuggestions
 );
 

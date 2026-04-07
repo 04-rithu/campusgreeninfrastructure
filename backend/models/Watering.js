@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
 
 const wateringSchema = new mongoose.Schema({
-  zoneName: { type: String, required: true },
-  task: { type: String, required: false }, // Optional as frontend might send 'task' or not
-  waterAmount: { type: Number, required: true },
-  scheduleDate: { type: Date, required: true },
-  status: { type: String, default: "Scheduled" }
+  zone: { type: String, required: true },
+  task_description: { type: String, required: true },
+  schedule_date: { type: Date, required: true },
+  duration_minutes: { type: Number, required: true },
+  status: { type: String, default: "Scheduled" },
+  enteredBy: { type: String },
+  editedBy: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Watering", wateringSchema);

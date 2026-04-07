@@ -2,17 +2,18 @@ const Pesticide = require("../models/Pesticide");
 
 exports.addPesticide = async (req, res) => {
   try {
-    const { zoneName, pesticideType, quantity, scheduleDate } = req.body;
+    const { zone, pesticide_type, quantity, schedule_date } = req.body;
 
-    if (!zoneName || !pesticideType || !quantity || !scheduleDate) {
+    if (!zone || !pesticide_type || !quantity || !schedule_date) {
       return res.status(400).json({ message: "Please fill all required fields" });
     }
 
     const record = await Pesticide.create({
-      zoneName,
-      pesticideType,
+      zone,
+      pesticide_type,
       quantity,
-      scheduleDate
+      schedule_date,
+      enteredBy: req.user.name
     });
     res.status(201).json(record);
   } catch (err) {
@@ -22,7 +23,7 @@ exports.addPesticide = async (req, res) => {
 
 exports.getPesticide = async (req, res) => {
   try {
-    const data = await Pesticide.find().sort({ scheduleDate: -1 });
+    const data = await Pesticide.find().sort({ schedule_date: -1 });
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -33,7 +34,7 @@ exports.updatePesticide = async (req, res) => {
   try {
     const updatedRecord = await Pesticide.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { ...req.body, editedBy: req.user.name },
       { new: true }
     );
     if (!updatedRecord) {

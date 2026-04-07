@@ -9,7 +9,10 @@ const plannerRoutes = require("./routes/plannerRoutes");
 const wateringRoutes = require("./routes/wateringRoutes");
 const pesticideRoutes = require("./routes/pesticideRoutes");
 const trimmingRoutes = require("./routes/trimmingRoutes");
+const wasteRoutes = require("./routes/wasteRoutes");
 const authRoutes = require("./routes/authRoutes");
+const suggestionRoutes = require("./routes/suggestionRoutes");
+const exportRoutes = require("./routes/exportRoutes");
 
 const app = express();
 
@@ -35,6 +38,9 @@ app.use("/api", plannerRoutes); // Fixed: Mounted at /api so /zones works
 app.use("/api/watering", wateringRoutes);
 app.use("/api/pesticide", pesticideRoutes);
 app.use("/api/trimming", trimmingRoutes);
+app.use("/api/waste", wasteRoutes);
+app.use("/api/suggestions", suggestionRoutes);
+app.use("/api/export", exportRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

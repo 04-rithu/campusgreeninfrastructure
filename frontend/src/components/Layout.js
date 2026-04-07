@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
-const Layout = () => {
+const Layout = ({ portal }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const toggleSidebar = () => {
@@ -12,7 +12,7 @@ const Layout = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} portal={portal} />
             <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
             <main style={{
                 marginLeft: isSidebarOpen ? '250px' : '70px',

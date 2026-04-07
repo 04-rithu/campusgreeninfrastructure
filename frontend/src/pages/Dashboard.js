@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { FaTree, FaTint, FaFlask, FaCut } from 'react-icons/fa';
+import { FaTree, FaTint, FaFlask, FaCut, FaTrash } from 'react-icons/fa';
 import StatCard from '../components/StatCard';
 import Loader from '../components/Loader';
 import api from '../api/axios';
@@ -10,7 +10,8 @@ const Dashboard = () => {
     zones: 0,
     watering: 0,
     pesticide: 0,
-    trimming: 0
+    trimming: 0,
+    waste: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -25,37 +26,83 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch summary counts
-        const [zonesRes, wateringRes, pesticideRes, trimmingRes] = await Promise.all([
+        const [zonesRes, wateringRes, pesticideRes, trimmingRes, wasteRes] = await Promise.all([
           api.get('/zones'),
           api.get('/watering'),
           api.get('/pesticide'),
-          api.get('/trimming')
+          api.get('/trimming'),
+          api.get('/waste')
         ]);
 
         setStats({
           zones: zonesRes.data.length || 0,
           watering: wateringRes.data.length || 0,
           pesticide: pesticideRes.data.length || 0,
-          trimming: trimmingRes.data.length || 0
+          trimming: trimmingRes.data.length || 0,
+          waste: wasteRes.data.length || 0
+        });
+
+        // Simulating chart data based on response
+        // In a real scenario, the backend would provide aggregated data
+        // Calculate activity trend for the current week (Mon-Sun)
+        const getDayOfWeek = (dateString) => {
+          const date = new Date(dateString);
+          let day = date.getDay();
+          // Adjust so Monday is 0, Sunday is 6
+          day = day === 0 ? 6 : day - 1;
+          return day;
+        };
+
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        // Start of week (Monday)
+        startOfWeek.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const allTasks = [
+          ...(wateringRes.data || []).map(t => ({ ...t, date: t.schedule_date })),
+          ...(pesticideRes.data || []).map(t => ({ ...t, date: t.schedule_date })),
+          ...(trimmingRes.data || []).map(t => ({ ...t, date: t.schedule_date })),
+          ...(wasteRes.data || []).map(t => ({ ...t, date: t.collection_date }))
+        ];
+
+        const weeklyCounts = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+        allTasks.forEach(task => {
+          if (task.date) {
+            const taskDate = new Date(task.date);
+            if (taskDate >= startOfWeek && taskDate <= endOfWeek) {
+              const dayIndex = getDayOfWeek(task.date);
+              weeklyCounts[dayIndex]++;
+            }
+          }
         });
 
         // Simulating chart data based on response
         // In a real scenario, the backend would provide aggregated data
         setChartData({
-          greenCover: zonesRes.data.slice(0, 5).map(z => ({ name: z.zoneName, cover: z.greenCover })),
+          greenCover: (zonesRes.data || []).slice(0, 10).map(z => ({ 
+            name: z.zoneName.split(' - ')[0], 
+            current: z.currentGreenCover,
+            required: z.requiredGreenCover
+          })),
           taskDistribution: [
-            { name: 'Watering', value: wateringRes.data.length },
-            { name: 'Pesticide', value: pesticideRes.data.length },
-            { name: 'Trimming', value: trimmingRes.data.length }
+            { name: 'Watering', value: (wateringRes.data || []).length },
+            { name: 'Pesticide', value: (pesticideRes.data || []).length },
+            { name: 'Trimming', value: (trimmingRes.data || []).length },
+            { name: 'Waste', value: (wasteRes.data || []).length }
           ],
           activityTrend: [
-            { name: 'Mon', tasks: 4 },
-            { name: 'Tue', tasks: 3 },
-            { name: 'Wed', tasks: 7 },
-            { name: 'Thu', tasks: 2 },
-            { name: 'Fri', tasks: 6 },
-            { name: 'Sat', tasks: 8 },
-            { name: 'Sun', tasks: 5 },
+            { name: 'Mon', tasks: weeklyCounts[0] },
+            { name: 'Tue', tasks: weeklyCounts[1] },
+            { name: 'Wed', tasks: weeklyCounts[2] },
+            { name: 'Thu', tasks: weeklyCounts[3] },
+            { name: 'Fri', tasks: weeklyCounts[4] },
+            { name: 'Sat', tasks: weeklyCounts[5] },
+            { name: 'Sun', tasks: weeklyCounts[6] },
           ]
         });
 
@@ -64,16 +111,17 @@ const Dashboard = () => {
         // Fallback for demo purposes if backend is largely empty
         setChartData({
           greenCover: [
-            { name: 'North Zone', cover: 75 },
-            { name: 'South Zone', cover: 60 },
-            { name: 'East Zone', cover: 80 },
-            { name: 'West Zone', cover: 55 },
-            { name: 'Central', cover: 90 },
+            { name: 'North Zone', current: 75, required: 85 },
+            { name: 'South Zone', current: 60, required: 70 },
+            { name: 'East Zone', current: 80, required: 80 },
+            { name: 'West Zone', current: 55, required: 65 },
+            { name: 'Central', current: 90, required: 95 },
           ],
           taskDistribution: [
             { name: 'Watering', value: 35 },
             { name: 'Pesticide', value: 15 },
-            { name: 'Trimming', value: 25 }
+            { name: 'Trimming', value: 25 },
+            { name: 'Waste', value: 10 }
           ],
           activityTrend: [
             { name: 'Mon', tasks: 4 },
@@ -93,7 +141,7 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   if (loading) return <Loader />;
 
@@ -106,6 +154,7 @@ const Dashboard = () => {
         <StatCard title="Watering Tasks" value={stats.watering} icon={<FaTint size={24} />} color="#0288d1" />
         <StatCard title="Pesticide Tasks" value={stats.pesticide} icon={<FaFlask size={24} />} color="#7b1fa2" />
         <StatCard title="Trimming Tasks" value={stats.trimming} icon={<FaCut size={24} />} color="#e65100" />
+        <StatCard title="Waste Tasks" value={stats.waste} icon={<FaTrash size={24} />} color="#d32f2f" />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
@@ -119,7 +168,8 @@ const Dashboard = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="cover" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="current" fill="var(--primary-color)" name="Current Cover" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="required" fill="#ccc" name="Required Cover" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

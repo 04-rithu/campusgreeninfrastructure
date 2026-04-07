@@ -5,7 +5,11 @@ const zoneSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  greenCover: {
+  currentGreenCover: {
+    type: Number,
+    required: true
+  },
+  requiredGreenCover: {
     type: Number,
     required: true
   },

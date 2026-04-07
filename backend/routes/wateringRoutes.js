@@ -8,16 +8,18 @@ const {
   deleteWatering,
 } = require("../controllers/wateringController");
 
+const { protect, admin } = require("../middleware/authMiddleware");
+
 // GET all watering data
-router.get("/", getWatering);
+router.get("/", protect, getWatering);
 
 // POST new watering task
-router.post("/", createWatering);
+router.post("/", protect, createWatering);
 
 // UPDATE watering task
-router.put("/:id", updateWatering);
+router.put("/:id", protect, admin, updateWatering);
 
 // DELETE watering task
-router.delete("/:id", deleteWatering);
+router.delete("/:id", protect, admin, deleteWatering);
 
 module.exports = router;
